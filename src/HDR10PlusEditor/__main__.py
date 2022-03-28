@@ -1,6 +1,10 @@
 # /bin/python3
-import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
-import HDR10PlusEditor.HDR10Plus.HDR10Plus as HDR10Plus
+try:
+    import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
+    import HDR10PlusEditor.HDR10Plus.HDR10Plus as HDR10Plus
+except:
+    import HDR10Plus.json as HDR10PlusJSON
+    import HDR10Plus.HDR10Plus as HDR10Plus
 
 def main():
     import argparse

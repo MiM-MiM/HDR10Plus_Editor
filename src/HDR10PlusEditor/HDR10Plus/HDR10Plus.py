@@ -11,7 +11,10 @@ class HDR10Plus:
             raise RuntimeError(
                 f"{__name__ }.export_as_json() expected a string filepath."
             )
-        import HDR10Plus.json as HDR10PlusJSON
+        try:
+            import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
+        except:
+            import HDR10Plus.json as HDR10PlusJSON
 
         HDR10PlusJSON.export(dct=self.HDR10Plus_DCT, saveName=saveName)
 
