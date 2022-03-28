@@ -22,5 +22,5 @@ jobs:
         pip install -e .
     - name: Analysing the code with pylint
       run: |
-        wget https://github.com/MiM-MiM/HDR10Plus_Editor/blob/main/pylint.rc
-        pylint --rcfile=pylint.rc $(git ls-files '*.py')
+        wget https://github.com/MiM-MiM/HDR10Plus_Editor/blob/main/pylint.rc -O pylintrc
+        pylint --rcfile=pylintrc $(git ls-files '*.py')
