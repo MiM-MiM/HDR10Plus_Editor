@@ -1,37 +1,55 @@
+"""HDR10Plus
+Contains the class for the HDR10Plus Object
+"""
+# pylint: disable=invalid-name,line-too-long
+
+try:
+    import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
+except ModuleNotFoundError:
+    import HDR10Plus.json as HDR10PlusJSON
+
+
 class HDR10Plus:
+    """HDR10Plus Object
+    Able to export to json, verify, and edit scenes (add/remove frames)
+    """
+
     HDR10Plus_DCT = None
 
     def __init__(self, data):
-        if type(data) is not dict:
+        """Initalize HDR10Plus object.
+        Keyword arguments:
+        data -- a dictionary of the HDR10+ JSON
+        """
+        if not isinstance(data, dict):
             pass
         self.HDR10Plus_DCT = data
 
     def export_as_json(self, saveName):
-        if type(saveName) is not str:
+        """Export the HDR10Plus object to a file.
+        Keyword arguments:
+        saveName -- The path to save the new JSON.
+        """
+        if not isinstance(saveName, str):
             raise RuntimeError(
                 f"{__name__ }.export_as_json() expected a string filepath."
             )
-        try:
-            import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
-        except:
-            import HDR10Plus.json as HDR10PlusJSON
 
         HDR10PlusJSON.export(dct=self.HDR10Plus_DCT, saveName=saveName)
 
-    # verify:
-    # Input: None
-    # Output: Boolean
-    # Summary: Returns True for valid HDR10+ files.
     def verify(self):
+        """Verify the object to contain a valid HDR10+ JSON/dct.
+        Keyword arguments:
+        """
         missing = []
         # Required JSONInfo, SceneInfo, SceneInfoSummary
-        if self.get_JSONInfo == {}:
+        if not self.get_JSONInfo:
             missing.append("JSONInfo")
-        if self.get_SceneInfo == []:
+        if not self.get_SceneInfo:
             missing.append("SceneInfo")
-        if self.get_SceneInfoSummary == {}:
+        if not self.get_SceneInfoSummary:
             missing.append("SceneInfoSummary")
-        if missing != []:
+        if missing:
             raise ValueError(
                 f"HDR10Plus requires 'JSONInfo, SceneInfo, and SceneInfoSummary'.\tMissing: {missing}"
             )
@@ -40,7 +58,7 @@ class HDR10Plus:
             missing.append("SceneFirstFrameIndex")
         if not SceneInfoSummary.get("SceneFrameNumbers"):
             missing.append("SceneFrameNumbers")
-        if missing != []:
+        if missing:
             raise ValueError(
                 f"HDR10Plus requires 'SceneInfoSummary' to have 'SceneFirstFrameIndex' and 'SceneFrameNumbers'.\tMissing: {missing}"
             )
@@ -54,6 +72,9 @@ class HDR10Plus:
         return True
 
     def summary(self):
+        """View a summary of the HDR10+ parsed.
+        Keyword arguments:
+        """
         summary = None
         JSONInfo = self.get_JSONInfo()
         profile = JSONInfo.get("HDR10plusProfile")
@@ -75,27 +96,48 @@ class HDR10Plus:
         if SceneInfoSummary:
             scene_count = f"{len(SceneInfoSummary)} Scenes"
             summary = f"{summary} | {scene_count}" if summary else f"{scene_count}"
+        if ToolInfo:
+            summary = f"{summary} | {ToolInfo}" if summary else f"{ToolInfo}"
         return summary
 
     def get_JSONInfo(self):
+        """Return the JSONInfo or an empty dct.
+        Keyword arguments:
+        """
         return self.HDR10Plus_DCT.get("JSONInfo", {})
 
     def get_SceneInfo(self):
+        """Return the SceneInfo or an empty list.
+        Keyword arguments:
+        """
         # SceneInfo is a list of frames.
         return self.HDR10Plus_DCT.get("SceneInfo", [])
 
     def get_SceneInfoSummary(self):
+        """Return the SceneInfoSummary or an empty dct.
+        Keyword arguments:
+        """
         return self.HDR10Plus_DCT.get("SceneInfoSummary", {})
 
     def get_TitleInfo(self):
+        """Return the TitleInfo or an empty dct.
+        Keyword arguments:
+        """
         return self.HDR10Plus_DCT.get("TitleInfo", {})
 
     def get_ToolInfo(self):
+        """Return the ToolInfo or an empty dct.
+        Keyword arguments:
+        """
         return self.HDR10Plus_DCT.get("ToolInfo", {})
 
     def modify_scene_frames(self, sceneID, frames):
-        from copy import deepcopy
-
+        #  pylint: disable=too-many-locals
+        """Add or remove frames from a given scene.
+        Keyword arguments:
+        sceneID -- The scene ID to be modified, starting at 0.
+        frames -- The amount of frames to add/remove.
+        """
         scene_frames = self.get_SceneInfoSummary().get("SceneFrameNumbers")
         total_scenes = len(scene_frames)
         if -1 >= sceneID >= total_scenes:

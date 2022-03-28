@@ -1,14 +1,22 @@
 # /bin/python3
+"""main()
+Run the editor directly as a module.
+"""
+# pylint: disable=invalid-name,line-too-long
+
 try:
-    import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
-    import HDR10PlusEditor.HDR10Plus.HDR10Plus as HDR10Plus
-except:
-    import HDR10Plus.json as HDR10PlusJSON
-    import HDR10Plus.HDR10Plus as HDR10Plus
+    from HDR10PlusEditor.HDR10Plus import json as HDR10PlusJSON
+    from HDR10PlusEditor.HDR10Plus import HDR10Plus
+except ModuleNotFoundError:
+    from HDR10Plus import json as HDR10PlusJSON
+    from HDR10Plus import HDR10Plus
+import argparse
+
 
 def main():
-    import argparse
-
+    """Run the script directly
+    Keyword arguments:
+    """
     parser = argparse.ArgumentParser(
         description="Add/remove frames from a HDR10+ JSON."
     )
@@ -53,6 +61,7 @@ def main():
     print(f"Saving JSON to '{args.output}'...")
     HDR10Plus_Object.export_as_json(args.output)
     print("Saved...")
+
 
 if __name__ == "__main__":
     main()
