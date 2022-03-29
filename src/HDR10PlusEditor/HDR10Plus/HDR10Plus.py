@@ -7,6 +7,7 @@ try:
     import HDR10PlusEditor.HDR10Plus.json as HDR10PlusJSON
 except ModuleNotFoundError:
     import HDR10Plus.json as HDR10PlusJSON
+import copy
 
 
 class HDR10Plus:
@@ -148,7 +149,10 @@ class HDR10Plus:
         new_SceneInfoSummary = self.get_SceneInfoSummary()
         new_SceneInfo = self.get_SceneInfo()
         scene_start = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID]
-        scene_end = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID + 1]
+        try:
+            scene_end = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID + 1]
+        except:
+            scene_end = (new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID] * 2) - 1
         if frames < 0:
             if scene_frame_count <= abs(frames):
                 raise ValueError(
@@ -157,7 +161,7 @@ class HDR10Plus:
             if sceneID == 0:
                 new_SceneInfo = new_SceneInfo[abs(frames) :]
             elif sceneID == total_scenes - 1:
-                new_SceneInfo = new_SceneInfo[0 : len(new_SceneInfo) - 1 + frames]
+                new_SceneInfo = new_SceneInfo[:frames]
             else:
                 scene_start = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID]
                 scene_end = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID + 1]
@@ -170,9 +174,7 @@ class HDR10Plus:
             if sceneID == 0:
                 new_SceneInfo = [new_SceneInfo[0]] * frames + new_SceneInfo
             elif sceneID == total_scenes - 1:
-                new_SceneInfo = (
-                    new_SceneInfo + [new_SceneInfo[0 : len(new_SceneInfo) - 1]] * frames
-                )
+                new_SceneInfo = new_SceneInfo + [new_SceneInfo[-1]] * frames
             else:
                 SceneInfo_start = new_SceneInfo[0:scene_start]
                 SceneInfo_mid = new_SceneInfo[scene_start : scene_end - 1]
@@ -190,20 +192,28 @@ class HDR10Plus:
         )
         self.HDR10Plus_DCT["SceneInfoSummary"] = new_SceneInfoSummary
         self.HDR10Plus_DCT["SceneInfo"] = new_SceneInfo
-        r = list(
-            range(
-                new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID],
-                new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID + 1],
-            )
-        )
-        r.reverse()
-        sceneFrameNumber = len(r) - 1
-        for i in r:
-            self.HDR10Plus_DCT["SceneInfo"][i]["SceneFrameIndex"] = sceneFrameNumber
-            sceneFrameNumber -= 1
 
-        # Update the SequenceFrameIndex frame numbers.
+        # Update the now incorrect values.
+        previous_scene, current_SceneIndex = None, None
         for i in range(0, len(new_SceneInfo)):
-            self.HDR10Plus_DCT["SceneInfo"][i]["SequenceFrameIndex"] = i
-        # Set the scene changed to start at 0, some reason it would not set it correctly, all other scene frames seemed fine.
-        self.HDR10Plus_DCT["SceneInfo"][scene_start]["SequenceFrameIndex"] = 0
+            current_SequenceFrameIndex = self.HDR10Plus_DCT["SceneInfo"][i][
+                "SequenceFrameIndex"
+            ]
+            current_SceneId = self.HDR10Plus_DCT["SceneInfo"][i]["SceneId"]
+            current_SceneFrameIndex = self.HDR10Plus_DCT["SceneInfo"][i][
+                "SceneFrameIndex"
+            ]
+            if previous_scene != current_SceneId:
+                # Start at 0
+                current_SceneIndex = 0
+                previous_scene = current_SceneId
+            else:
+                current_SceneIndex += 1
+            if current_SceneIndex != current_SceneFrameIndex:
+                change = copy.deepcopy(self.HDR10Plus_DCT["SceneInfo"][i])
+                change["SceneFrameIndex"] = copy.deepcopy(current_SceneIndex)
+                self.HDR10Plus_DCT["SceneInfo"][i] = copy.deepcopy(change)
+            if current_SequenceFrameIndex != i:
+                change = copy.deepcopy(self.HDR10Plus_DCT["SceneInfo"][i])
+                change["SequenceFrameIndex"] = copy.deepcopy(i)
+                self.HDR10Plus_DCT["SceneInfo"][i] = copy.deepcopy(change)
