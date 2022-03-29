@@ -133,7 +133,7 @@ class HDR10Plus:
         return self.HDR10Plus_DCT.get("ToolInfo", {})
 
     def modify_scene_frames(self, sceneID, frames):
-        #  pylint: disable=too-many-locals
+        #  pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Add or remove frames from a given scene.
         Keyword arguments:
         sceneID -- The scene ID to be modified, starting at 0.
@@ -151,7 +151,7 @@ class HDR10Plus:
         scene_start = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID]
         try:
             scene_end = new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID + 1]
-        except:
+        except IndexError:
             scene_end = (new_SceneInfoSummary["SceneFirstFrameIndex"][sceneID] * 2) - 1
         if frames < 0:
             if scene_frame_count <= abs(frames):
